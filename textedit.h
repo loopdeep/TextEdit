@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
@@ -34,6 +34,8 @@
 #ifndef TEXTEDIT_H
 #define TEXTEDIT_H
 
+#pragma execution_character_set("utf-8")
+
 #include <QMainWindow>
 #include <QMap>
 #include <QPointer>
@@ -62,6 +64,8 @@ private:
     void setupFileActions();
     void setupEditActions();
     void setupTextActions();
+    void setupInsertActions();
+
     bool load(const QString &f);
     bool maybeSave();
     void setCurrentFileName(const QString &fileName);
@@ -84,6 +88,9 @@ private slots:
     void textColor();
     void textAlign(QAction *a);
 
+    void insertImageDlg();
+    void insertImage(const QString &image);
+
     void currentCharFormatChanged(const QTextCharFormat &format);
     void cursorPositionChanged();
 
@@ -97,28 +104,29 @@ private:
     void colorChanged(const QColor &c);
     void alignmentChanged(Qt::Alignment a);
 
-    QAction *actionSave;
-    QAction *actionTextBold;
-    QAction *actionTextUnderline;
-    QAction *actionTextItalic;
-    QAction *actionTextColor;
-    QAction *actionAlignLeft;
-    QAction *actionAlignCenter;
-    QAction *actionAlignRight;
-    QAction *actionAlignJustify;
-    QAction *actionUndo;
-    QAction *actionRedo;
-    QAction *actionCut;
-    QAction *actionCopy;
-    QAction *actionPaste;
+    QAction *m_actionSave;
+    QAction *m_actionTextBold;
+    QAction *m_actionTextUnderline;
+    QAction *m_actionTextItalic;
+    QAction *m_actionTextColor;
+    QAction *m_actionAlignLeft;
+    QAction *m_actionAlignCenter;
+    QAction *m_actionAlignRight;
+    QAction *m_actionAlignJustify;
+    QAction *m_actionUndo;
+    QAction *m_actionRedo;
+    QAction *m_actionCut;
+    QAction *m_actionCopy;
+    QAction *m_actionPaste;
+    QAction *m_actionInsertImg;
 
-    QComboBox *comboStyle;
-    QFontComboBox *comboFont;
-    QComboBox *comboSize;
+    QComboBox *m_comboStyle;
+    QFontComboBox *m_comboFont;
+    QComboBox *m_comboSize;
 
-    QToolBar *tb;
-    QString fileName;
-    QTextEdit *textEdit;
+//    QToolBar *m_tb;
+    QString m_fileName;
+    QTextEdit *m_textEdit;
 };
 
 #endif // TEXTEDIT_H
