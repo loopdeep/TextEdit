@@ -41,5 +41,10 @@
         <file>images/win/zoomout.png</file>
         <file>example.html</file>
         <file>images/mac/image.png</file>
+        <file>images/mac/about.png</file>
+        <file>images/mac/liststyle.png</file>
+        <file>images/mac/link.png</file>
+        <file>images/mac/web.png</file>
+        <file>images/mac/openfile.png</file>
     </qresource>
 </RCC>

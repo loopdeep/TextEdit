@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
@@ -34,6 +34,9 @@
 #include "textedit.h"
 #include <QApplication>
 
+#include <QImageReader>
+#include <QDebug>
+
 int main(int argc, char *argv[])
 {
     Q_INIT_RESOURCE(textedit);
@@ -42,5 +45,7 @@ int main(int argc, char *argv[])
     TextEdit mw;
     mw.resize(700, 800);
     mw.showMaximized();
+
+    qDebug() << "support images: " << QImageReader::supportedImageFormats();
     return a.exec();
 }

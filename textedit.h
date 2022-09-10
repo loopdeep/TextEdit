@@ -34,11 +34,22 @@
 #ifndef TEXTEDIT_H
 #define TEXTEDIT_H
 
-#pragma execution_character_set("utf-8")
+//#pragma execution_character_set("utf-8")
 
 #include <QMainWindow>
 #include <QMap>
 #include <QPointer>
+#include <QDialog>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QGroupBox>
+#include <QSpacerItem>
+#include <QFileDialog>
+
+#include "textediter.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -50,15 +61,53 @@ class QMenu;
 class QPrinter;
 QT_END_NAMESPACE
 
+
+class InsertLinkDlg : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit InsertLinkDlg(QWidget *parent = 0);
+    ~InsertLinkDlg();
+
+    void initDlg();
+
+signals:
+    void hyperLinkCreateSig(QStringList list);
+
+private slots:
+    void onHyperlinkClicked();
+    void onFilelinkClicked();
+
+    void onBtnConfirmClicked();
+    void onBtnCancelClicked();
+    void onOpenFile();
+
+private:
+    QLabel *m_showLabel;
+    QLineEdit *m_showEdit;
+    QLabel *m_linkLabel;
+    QLineEdit *m_linkEdit;
+    QPushButton *m_btn_openLink;
+
+    QPushButton *m_hyperLink;
+    QPushButton *m_fileLink;
+
+    QPushButton *m_btn_confirm;
+    QPushButton *m_btn_cancel;
+};
+
 class TextEdit : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    TextEdit(QWidget *parent = 0);
+    explicit TextEdit(QWidget *parent = 0);
 
 protected:
     virtual void closeEvent(QCloseEvent *e) Q_DECL_OVERRIDE;
+//    virtual void dragEnterEvent(QDragEnterEvent *e);
+//    virtual void dropEnterEvent(QDropEvent *e);
 
 private:
     void setupFileActions();
@@ -89,7 +138,9 @@ private slots:
     void textAlign(QAction *a);
 
     void insertImageDlg();
-    void insertImage(const QString &image);
+    void insertImage(const QString &imgPath);
+    void insertHyperLinkDlg();
+    void insertHyperLink(QStringList link);
 
     void currentCharFormatChanged(const QTextCharFormat &format);
     void cursorPositionChanged();
@@ -119,14 +170,21 @@ private:
     QAction *m_actionCopy;
     QAction *m_actionPaste;
     QAction *m_actionInsertImg;
+    QAction *m_actionInsertLink;
 
     QComboBox *m_comboStyle;
     QFontComboBox *m_comboFont;
     QComboBox *m_comboSize;
 
-//    QToolBar *m_tb;
+    QMenu *m_fileMenu;
+    QMenu *m_editMenu;
+    QMenu *m_formatMenu;
+    QMenu *m_insertMenu;
+    QMenu *m_helpMenu;
     QString m_fileName;
-    QTextEdit *m_textEdit;
+    TextEditer *m_textEdit;
+
+    InsertLinkDlg *m_insertDlg;
 };
 
 #endif // TEXTEDIT_H
