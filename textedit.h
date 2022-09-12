@@ -155,6 +155,8 @@ private:
     void colorChanged(const QColor &c);
     void alignmentChanged(Qt::Alignment a);
 
+    QString m_supportImgFormat;
+
     QAction *m_actionSave;
     QAction *m_actionTextBold;
     QAction *m_actionTextUnderline;
@@ -185,6 +187,7 @@ private:
     TextEditer *m_textEdit;
 
     InsertLinkDlg *m_insertDlg;
+
 };
 
 #endif // TEXTEDIT_H

@@ -15,6 +15,8 @@ public:
     void setMode(bool mode);
     bool getMode() const;
 
+    void insertHyperLink(const QStringList &linkList);
+
 protected:
     bool canInsertFromMimeData(const QMimeData* source) const;
 
@@ -27,6 +29,7 @@ private:
 
 private:
     bool m_mode; // true-浏览模式/false-编辑模式
+    QStringList m_supportTxtList;
 };
 
 #endif // TEXTEDITER_H

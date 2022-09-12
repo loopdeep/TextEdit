@@ -46,6 +46,5 @@ int main(int argc, char *argv[])
     mw.resize(700, 800);
     mw.showMaximized();
 
-    qDebug() << "support images: " << QImageReader::supportedImageFormats();
     return a.exec();
 }

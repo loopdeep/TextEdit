@@ -2,20 +2,64 @@
 #include <QMimeData>
 #include <QFileInfo>
 #include <QImageReader>
+#include <QTextCharFormat>
+#include <QDebug>
 
 TextEditer::TextEditer(QWidget *parent) : QTextBrowser(parent)
 {
-    m_mode = false;
+    setMode(false);
+
+    auto clist = this->children();
+
+    // 允许点击链接
+    for (auto it = clist.begin(); it != clist.end(); ++it)
+    {
+        QObject *pObj = *it;
+        QString cname = pObj->metaObject()->className();
+                if (cname == "QWidgetTextControl")
+                pObj->setProperty("openExternalLinks", true);
+    }
+
+    m_supportTxtList.clear();
+    // 支持的文本文件内容
+    m_supportTxtList << ".txt";
 }
 
 void TextEditer::setMode(bool mode)
 {
-    this->setReadOnly(mode);
+    m_mode = mode;
+//    this->setReadOnly(mode);
+    if (mode)
+    {
+        this->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    }
+    else
+    {
+        this->setTextInteractionFlags(Qt::TextEditorInteraction);
+    }
 }
 
 bool TextEditer::getMode() const
 {
     return m_mode;
+}
+
+void TextEditer::insertHyperLink(const QStringList &linkList)
+{
+    if (linkList.size() != 2)
+        return;
+
+    QTextCursor cursor(this->document());
+    this->setTextCursor(cursor);
+    QTextCharFormat linkFormat = cursor.charFormat();
+    linkFormat.setAnchor(true);
+//    linkFormat.setForeground(QColor('blue'));
+    linkFormat.setAnchorName(linkList.at(0));
+    linkFormat.setAnchorHref(linkList.at(1));
+    linkFormat.setToolTip(linkList.at(0));
+//    linkFormat.setFontUnderline(true);
+
+    cursor.insertText(linkList.at(0), linkFormat);
 }
 
 bool TextEditer::canInsertFromMimeData(const QMimeData *source) const
@@ -43,9 +87,23 @@ void TextEditer::insertFromMimeData(const QMimeData *source)
             QFileInfo info(url.toLocalFile());
             if (QImageReader::supportedImageFormats()
                     .contains(info.suffix().toLower().toLatin1()))
+            {
+                // 拖入图片
                 dropImage(url, QImage(info.filePath()));
-            else
+            }
+            else if (m_supportTxtList.contains(
+                         info.suffix().toLower().toLatin1()))
+            {
+                // 拖入文本文件
                 dropTextFile(url);
+            }
+            else
+            {
+                // 拖入链接
+                QStringList linkList;
+                linkList << url.fileName() << url.toString();
+                insertHyperLink(linkList);
+            }
         }
     }
     else

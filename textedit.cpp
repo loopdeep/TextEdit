@@ -154,6 +154,14 @@ TextEdit::TextEdit(QWidget *parent)
 //    if (!load(initialFile))
 //        fileNew();
 
+    QList<QByteArray> supportImgFmt = QImageReader::supportedImageFormats();
+    for (auto it = supportImgFmt.begin(); it != supportImgFmt.end(); ++it)
+    {
+        if (it == supportImgFmt.begin())
+            m_supportImgFormat.append("*." + *it);
+        m_supportImgFormat.append(" *." + *it);
+    }
+
     fileNew();
 
     int rightMar, leftMar, topMar, bottomMar;
@@ -168,33 +176,6 @@ void TextEdit::closeEvent(QCloseEvent *e)
     else
         e->ignore();
 }
-
-//void TextEdit::dragEnterEvent(QDragEnterEvent *e)
-//{
-//    qDebug() << "hx ==== dragEnterEvent";
-//    e->acceptProposedAction();
-
-
-//}
-
-//void TextEdit::dropEnterEvent(QDropEvent *e)
-//{
-//    QString url=e->mimeData()->urls().first().toLocalFile();
-//    qDebug() << "hx === img path: " << url;
-
-//    if(e->mimeData()->hasImage())
-//    {
-//        insertImage(url);
-////        //这只是个名字 供后续调用的名字
-////        QUrl name ( QString ( "file://%1" ).arg ( url ) );
-
-////        //获取图片 并插入到光标处
-////        QImage image = QImageReader ( url ).read();
-////        QTextDocument * textDocument = m_textEdit->document();
-////        textDocument->addResource( QTextDocument::ImageResource, name, QVariant ( image ) );
-////        m_textEdit->textCursor().insertImage(name.toString());
-//    }
-//}
 
 void TextEdit::setupFileActions()
 {
@@ -374,12 +355,6 @@ void TextEdit::setupTextActions()
     m_formatMenu->addAction(m_actionTextColor);
     m_formatMenu->addSeparator();
 
-//    tb = new QToolBar(this);
-//    tb->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
-//    tb->setWindowTitle(QStringLiteral("Format Actions"));
-//    addToolBarBreak(Qt::TopToolBarArea);
-//    addToolBar(tb);
-
     m_comboFont = new QFontComboBox(tb);
     tb->addWidget(m_comboFont);
     connect(m_comboFont, SIGNAL(activated(QString)),
@@ -465,15 +440,6 @@ void TextEdit::setupInsertActions()
     tb->addWidget(m_comboStyle);
 
     QStringList styleList;
-//    styleList << "Standard"
-//              << "Bullet List (Disc)"
-//              << "Bullet List (Circle)"
-//              << "Bullet List (Square)"
-//              << "Ordered List (Decimal)"
-//              << "Ordered List (Alpha lower)"
-//              << "Ordered List (Alpha upper)"
-//              << "Ordered List (Roman lower)"
-//              << "Ordered List (Roman upper)";
 
     styleList << QStringLiteral("(无)")
               << QStringLiteral("●")
@@ -485,19 +451,6 @@ void TextEdit::setupInsertActions()
               << QStringLiteral("ⅰ,ⅱ,ⅲ,...")
               << QStringLiteral("Ⅰ,Ⅱ,Ⅲ,...");
     m_comboStyle->addItems(styleList);
-
-//    QMenu menu(QStringLiteral("项目符号列表"));
-//    m_insertMenu->addMenu(&menu);
-
-//    m_comboStyle->addItem("Standard");
-//    m_comboStyle->addItem("Bullet List (Disc)");
-//    m_comboStyle->addItem("Bullet List (Circle)");
-//    m_comboStyle->addItem("Bullet List (Square)");
-//    m_comboStyle->addItem("Ordered List (Decimal)");
-//    m_comboStyle->addItem("Ordered List (Alpha lower)");
-//    m_comboStyle->addItem("Ordered List (Alpha upper)");
-//    m_comboStyle->addItem("Ordered List (Roman lower)");
-//    m_comboStyle->addItem("Ordered List (Roman upper)");
     connect(m_comboStyle, SIGNAL(activated(int)), this, SLOT(textStyle(int)));
 
     m_actionInsertImg = new QAction(QIcon::fromTheme("insert-image",
@@ -560,9 +513,18 @@ bool TextEdit::maybeSave()
         return true;
 
     QMessageBox::StandardButton ret;
-    ret = QMessageBox::warning(this, QStringLiteral("提示"),
-                               QStringLiteral("文件已被修改，是否保存？"),
-                               QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    QMessageBox box(QMessageBox::Warning, QStringLiteral("提示"),
+                    QStringLiteral("文件已被修改，是否保存？"),
+                    QMessageBox::Save
+                    | QMessageBox::Discard
+                    | QMessageBox::Cancel);
+
+    box.setButtonText(QMessageBox::Save, QStringLiteral("保存"));
+    box.setButtonText(QMessageBox::Discard, QStringLiteral("丢弃"));
+    box.setButtonText(QMessageBox::Cancel, QStringLiteral("取消"));
+
+    ret = static_cast<QMessageBox::StandardButton>(box.exec());
+
     if (ret == QMessageBox::Save)
         return fileSave();
     else if (ret == QMessageBox::Cancel)
@@ -711,7 +673,6 @@ void TextEdit::textFamily(const QString &f)
 {
     QTextCharFormat fmt;
     fmt.setFontFamily(f);
-    qDebug() << "hx === font family: " << f;
     mergeFormatOnWordOrSelection(fmt);
 }
 
@@ -813,13 +774,10 @@ void TextEdit::textAlign(QAction *a)
 void TextEdit::insertImageDlg()
 {
     QString file = QFileDialog::getOpenFileName(this, QStringLiteral("选择图片"),
-                                  ".", tr("Images (*.png *.bmp *.jpg *.gif"
-                                          " *.ico *.tif *.tiff *.webp)"));
+                                  ".", m_supportImgFormat);
 
     QUrl uri(QString("file:///%1").arg(file));
     QImage image = QImageReader(file).read();
-
-//    m_textEdit->append(QString("<img src=\"%1\" />").arg(file));
 
     QTextDocument *textDocument = m_textEdit->document();
     textDocument->addResource(QTextDocument::ImageResource, uri, QVariant(image));
@@ -838,8 +796,6 @@ void TextEdit::insertImage(const QString &imgPath)
 {
     QUrl uri(QString("file:///%1").arg(imgPath));
     QImage image = QImageReader(imgPath).read();
-
-//    m_textEdit->append(QString("<img src=\"%1\" />").arg(imgPath));
 
     QTextDocument *textDocument = m_textEdit->document();
     textDocument->addResource(QTextDocument::ImageResource, uri, QVariant(image));
@@ -868,22 +824,10 @@ void TextEdit::insertHyperLinkDlg()
     m_insertDlg->show();
 }
 
+// 插入超链接
 void TextEdit::insertHyperLink(QStringList linkList)
 {
-    if (linkList.size() != 2)
-        return;
-
-    QTextCursor cursor(m_textEdit->document());
-    m_textEdit->setTextCursor(cursor);
-    QTextCharFormat linkFormat = cursor.charFormat();
-    linkFormat.setAnchor(true);
-    linkFormat.setForeground(QColor('blue'));
-    linkFormat.setAnchorHref(linkList.at(1));
-    linkFormat.setAnchorName(linkList.at(0));
-    linkFormat.setFontUnderline(true);
-
-    cursor.insertText(linkList.at(0), linkFormat);
-
+    m_textEdit->insertHyperLink(linkList);
 }
 
 void TextEdit::currentCharFormatChanged(const QTextCharFormat &format)
@@ -913,8 +857,6 @@ void TextEdit::about()
 void TextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat &format)
 {
     QTextCursor cursor = m_textEdit->textCursor();
-//    if (!cursor.hasSelection())
-//        cursor.select(QTextCursor::WordUnderCursor);
     cursor.mergeCharFormat(format);
     m_textEdit->mergeCurrentCharFormat(format);
 }
