@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     TextEdit mw;
-    mw.resize(700, 800);
+    mw.resize(1024, 768);
+    mw.setEditMode(false);
     mw.showMaximized();
 
     return a.exec();

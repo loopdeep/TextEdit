@@ -21,3 +21,5 @@ EXAMPLE_FILES = textedit.qdoc
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/widgets/richtext/textedit
 INSTALLS += target
+
+RC_ICONS += edit.ico

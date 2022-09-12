@@ -104,6 +104,8 @@ class TextEdit : public QMainWindow
 public:
     explicit TextEdit(QWidget *parent = 0);
 
+    void setEditMode(bool mode);
+
 protected:
     virtual void closeEvent(QCloseEvent *e) Q_DECL_OVERRIDE;
 //    virtual void dragEnterEvent(QDragEnterEvent *e);
@@ -157,6 +159,8 @@ private:
 
     QString m_supportImgFormat;
 
+    QAction *m_actionReadOnlyMode;
+
     QAction *m_actionSave;
     QAction *m_actionTextBold;
     QAction *m_actionTextUnderline;
@@ -178,6 +182,11 @@ private:
     QFontComboBox *m_comboFont;
     QComboBox *m_comboSize;
 
+    QToolBar *m_fileToolBar;
+    QToolBar *m_editToolBar;
+    QToolBar *m_fmtToolBar;
+    QToolBar *m_insertToolBar;
+
     QMenu *m_fileMenu;
     QMenu *m_editMenu;
     QMenu *m_formatMenu;
@@ -187,7 +196,6 @@ private:
     TextEditer *m_textEdit;
 
     InsertLinkDlg *m_insertDlg;
-
 };
 
 #endif // TEXTEDIT_H

@@ -2,6 +2,7 @@
 #include <QMimeData>
 #include <QFileInfo>
 #include <QImageReader>
+#include <QTextCursor>
 #include <QTextCharFormat>
 #include <QDebug>
 
@@ -19,6 +20,7 @@ TextEditer::TextEditer(QWidget *parent) : QTextBrowser(parent)
                 if (cname == "QWidgetTextControl")
                 pObj->setProperty("openExternalLinks", true);
     }
+//    setOpenExternalLinks(true);
 
     m_supportTxtList.clear();
     // 支持的文本文件内容
@@ -28,7 +30,6 @@ TextEditer::TextEditer(QWidget *parent) : QTextBrowser(parent)
 void TextEditer::setMode(bool mode)
 {
     m_mode = mode;
-//    this->setReadOnly(mode);
     if (mode)
     {
         this->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -49,17 +50,15 @@ void TextEditer::insertHyperLink(const QStringList &linkList)
     if (linkList.size() != 2)
         return;
 
-    QTextCursor cursor(this->document());
-    this->setTextCursor(cursor);
-    QTextCharFormat linkFormat = cursor.charFormat();
+    QTextCharFormat linkFormat = textCursor().charFormat();
     linkFormat.setAnchor(true);
-//    linkFormat.setForeground(QColor('blue'));
+    linkFormat.setForeground(QColor('blue'));
     linkFormat.setAnchorName(linkList.at(0));
     linkFormat.setAnchorHref(linkList.at(1));
     linkFormat.setToolTip(linkList.at(0));
-//    linkFormat.setFontUnderline(true);
+    linkFormat.setFontUnderline(true);
 
-    cursor.insertText(linkList.at(0), linkFormat);
+    textCursor().insertText(linkList.at(0), linkFormat);
 }
 
 bool TextEditer::canInsertFromMimeData(const QMimeData *source) const

@@ -79,6 +79,8 @@ TextEdit::TextEdit(QWidget *parent)
     setUnifiedTitleAndToolBarOnMac(true);
 #endif
 
+    setWindowIcon(QIcon(":/images/edit.ico"));
+
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
     setupFileActions();
     setupEditActions();
@@ -147,10 +149,6 @@ TextEdit::TextEdit(QWidget *parent)
 #endif
 
 //    QString initialFile = ":/example.html";
-//    const QStringList args = QCoreApplication::arguments();
-//    if (args.count() == 2)
-//        initialFile = args.at(1);
-
 //    if (!load(initialFile))
 //        fileNew();
 
@@ -163,10 +161,17 @@ TextEdit::TextEdit(QWidget *parent)
     }
 
     fileNew();
+}
 
-    int rightMar, leftMar, topMar, bottomMar;
-    m_textEdit->getContentsMargins(&leftMar, &topMar, &rightMar, &bottomMar);
-    qDebug() << leftMar << topMar << rightMar << bottomMar;
+// 设置编辑器模式(true-只读模式/false-编辑模式)
+void TextEdit::setEditMode(bool mode)
+{
+    m_textEdit->setMode(mode);
+    menuBar()->setVisible(!mode);
+    m_fileToolBar->setVisible(!mode);
+    m_editToolBar->setVisible(!mode);
+    m_fmtToolBar->setVisible(!mode);
+    m_insertToolBar->setVisible(!mode);
 }
 
 void TextEdit::closeEvent(QCloseEvent *e)
@@ -179,9 +184,9 @@ void TextEdit::closeEvent(QCloseEvent *e)
 
 void TextEdit::setupFileActions()
 {
-    QToolBar *tb = new QToolBar(this);
-    tb->setWindowTitle(QStringLiteral("文件操作"));
-    addToolBar(tb);
+    m_fileToolBar = new QToolBar(this);
+    m_fileToolBar->setWindowTitle(QStringLiteral("文件操作"));
+    addToolBar(m_fileToolBar);
 
     m_fileMenu = new QMenu(QStringLiteral("文件"), this);
     menuBar()->addMenu(m_fileMenu);
@@ -193,14 +198,14 @@ void TextEdit::setupFileActions()
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::New);
     connect(a, SIGNAL(triggered()), this, SLOT(fileNew()));
-    tb->addAction(a);
+    m_fileToolBar->addAction(a);
     m_fileMenu->addAction(a);
 
     a = new QAction(QIcon::fromTheme("document-open", QIcon(rsrcPath + "/fileopen.png")),
                     QStringLiteral("打开"), this);
     a->setShortcut(QKeySequence::Open);
     connect(a, SIGNAL(triggered()), this, SLOT(fileOpen()));
-    tb->addAction(a);
+    m_fileToolBar->addAction(a);
     m_fileMenu->addAction(a);
 
     m_fileMenu->addSeparator();
@@ -210,7 +215,7 @@ void TextEdit::setupFileActions()
     a->setShortcut(QKeySequence::Save);
     connect(a, SIGNAL(triggered()), this, SLOT(fileSave()));
     a->setEnabled(false);
-    tb->addAction(a);
+    m_fileToolBar->addAction(a);
     m_fileMenu->addAction(a);
 
     a = new QAction(QStringLiteral("另存为"), this);
@@ -225,7 +230,7 @@ void TextEdit::setupFileActions()
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Print);
     connect(a, SIGNAL(triggered()), this, SLOT(filePrint()));
-    tb->addAction(a);
+    m_fileToolBar->addAction(a);
     m_fileMenu->addAction(a);
 
     a = new QAction(QIcon::fromTheme("fileprint", QIcon(rsrcPath + "/fileprint.png")),
@@ -238,7 +243,7 @@ void TextEdit::setupFileActions()
     a->setPriority(QAction::LowPriority);
     a->setShortcut(Qt::CTRL + Qt::Key_D);
     connect(a, SIGNAL(triggered()), this, SLOT(filePrintPdf()));
-    tb->addAction(a);
+    m_fileToolBar->addAction(a);
     m_fileMenu->addAction(a);
 
     m_fileMenu->addSeparator();
@@ -248,13 +253,18 @@ void TextEdit::setupFileActions()
     a->setShortcut(Qt::CTRL + Qt::Key_Q);
     connect(a, SIGNAL(triggered()), this, SLOT(close()));
     m_fileMenu->addAction(a);
+
+    m_actionReadOnlyMode = new QAction(QStringLiteral("只读模式"), this);
+    connect(m_actionReadOnlyMode, SIGNAL(triggered()),
+            this, SLOT(close()));
+    m_fileMenu->addAction(m_actionReadOnlyMode);
 }
 
 void TextEdit::setupEditActions()
 {
-    QToolBar *tb = new QToolBar(this);
-    tb->setWindowTitle(QStringLiteral("编辑操作"));
-    addToolBar(tb);
+    m_editToolBar = new QToolBar(this);
+    m_editToolBar->setWindowTitle(QStringLiteral("编辑操作"));
+    addToolBar(m_editToolBar);
     m_editMenu = new QMenu(QStringLiteral("编辑"), this);
     menuBar()->addMenu(m_editMenu);
 
@@ -262,32 +272,32 @@ void TextEdit::setupEditActions()
     a = m_actionUndo = new QAction(QIcon::fromTheme("edit-undo", QIcon(rsrcPath + "/editundo.png")),
                                               QStringLiteral("重做"), this);
     a->setShortcut(QKeySequence::Undo);
-    tb->addAction(a);
+    m_editToolBar->addAction(a);
     m_editMenu->addAction(a);
     a = m_actionRedo = new QAction(QIcon::fromTheme("edit-redo", QIcon(rsrcPath + "/editredo.png")),
                                               QStringLiteral("回退"), this);
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Redo);
-    tb->addAction(a);
+    m_editToolBar->addAction(a);
     m_editMenu->addAction(a);
     m_editMenu->addSeparator();
     a = m_actionCut = new QAction(QIcon::fromTheme("edit-cut", QIcon(rsrcPath + "/editcut.png")),
                                              QStringLiteral("剪切"), this);
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Cut);
-    tb->addAction(a);
+    m_editToolBar->addAction(a);
     m_editMenu->addAction(a);
     a = m_actionCopy = new QAction(QIcon::fromTheme("edit-copy", QIcon(rsrcPath + "/editcopy.png")),
                                  QStringLiteral("复制"), this);
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Copy);
-    tb->addAction(a);
+    m_editToolBar->addAction(a);
     m_editMenu->addAction(a);
     a = m_actionPaste = new QAction(QIcon::fromTheme("edit-paste", QIcon(rsrcPath + "/editpaste.png")),
                                   QStringLiteral("粘贴"), this);
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Paste);
-    tb->addAction(a);
+    m_editToolBar->addAction(a);
     m_editMenu->addAction(a);
 #ifndef QT_NO_CLIPBOARD
     if (const QMimeData *md = QApplication::clipboard()->mimeData())
@@ -297,9 +307,9 @@ void TextEdit::setupEditActions()
 
 void TextEdit::setupTextActions()
 {
-    QToolBar *tb = new QToolBar(this);
-    tb->setWindowTitle(QStringLiteral("格式操作"));
-    addToolBar(tb);
+    m_fmtToolBar = new QToolBar(this);
+    m_fmtToolBar->setWindowTitle(QStringLiteral("格式操作"));
+    addToolBar(m_fmtToolBar);
 
     m_formatMenu = new QMenu(QStringLiteral("格式"), this);
     menuBar()->addMenu(m_formatMenu);
@@ -312,12 +322,12 @@ void TextEdit::setupTextActions()
     bold.setBold(true);
     m_actionTextBold->setFont(bold);
     connect(m_actionTextBold, SIGNAL(triggered()), this, SLOT(textBold()));
-    tb->addAction(m_actionTextBold);
+    m_fmtToolBar->addAction(m_actionTextBold);
     m_formatMenu->addAction(m_actionTextBold);
     m_actionTextBold->setCheckable(true);
 
     m_actionTextItalic = new QAction(QIcon::fromTheme("format-text-italic",
-                                                    QIcon(rsrcPath + "/textitalic.png")),
+                                 QIcon(rsrcPath + "/textitalic.png")),
                                    QStringLiteral("斜体"), this);
     m_actionTextItalic->setPriority(QAction::LowPriority);
     m_actionTextItalic->setShortcut(Qt::CTRL + Qt::Key_I);
@@ -325,7 +335,7 @@ void TextEdit::setupTextActions()
     italic.setItalic(true);
     m_actionTextItalic->setFont(italic);
     connect(m_actionTextItalic, SIGNAL(triggered()), this, SLOT(textItalic()));
-    tb->addAction(m_actionTextItalic);
+    m_fmtToolBar->addAction(m_actionTextItalic);
     m_formatMenu->addAction(m_actionTextItalic);
     m_actionTextItalic->setCheckable(true);
 
@@ -338,31 +348,29 @@ void TextEdit::setupTextActions()
     underline.setUnderline(true);
     m_actionTextUnderline->setFont(underline);
     connect(m_actionTextUnderline, SIGNAL(triggered()), this, SLOT(textUnderline()));
-    tb->addAction(m_actionTextUnderline);
+    m_fmtToolBar->addAction(m_actionTextUnderline);
     m_formatMenu->addAction(m_actionTextUnderline);
     m_actionTextUnderline->setCheckable(true);
 
     m_formatMenu->addSeparator();
-
-
 
     QPixmap pix(16, 16);
     pix.fill(Qt::black);
     m_actionTextColor = new QAction(pix, QStringLiteral("字体颜色"), this);
     connect(m_actionTextColor, SIGNAL(triggered()),
             this, SLOT(textColor()));
-    tb->addAction(m_actionTextColor);
+    m_fmtToolBar->addAction(m_actionTextColor);
     m_formatMenu->addAction(m_actionTextColor);
     m_formatMenu->addSeparator();
 
-    m_comboFont = new QFontComboBox(tb);
-    tb->addWidget(m_comboFont);
+    m_comboFont = new QFontComboBox(m_fmtToolBar);
+    m_fmtToolBar->addWidget(m_comboFont);
     connect(m_comboFont, SIGNAL(activated(QString)),
             this, SLOT(textFamily(QString)));
 
-    m_comboSize = new QComboBox(tb);
+    m_comboSize = new QComboBox(m_fmtToolBar);
     m_comboSize->setObjectName("m_comboSize");
-    tb->addWidget(m_comboSize);
+    m_fmtToolBar->addWidget(m_comboSize);
     m_comboSize->setEditable(true);
 
     QFontDatabase db;
@@ -374,9 +382,7 @@ void TextEdit::setupTextActions()
     m_comboSize->setCurrentIndex(m_comboSize->findText(
                     QString::number(QApplication::font().pointSize())));
 
-
-    tb->addSeparator();
-
+    m_fmtToolBar->addSeparator();
 
     QActionGroup *grp = new QActionGroup(this);
     connect(grp, SIGNAL(triggered(QAction*)), this, SLOT(textAlign(QAction*)));
@@ -420,7 +426,7 @@ void TextEdit::setupTextActions()
     m_actionAlignJustify->setCheckable(true);
     m_actionAlignJustify->setPriority(QAction::LowPriority);
 
-    tb->addActions(grp->actions());
+    m_fmtToolBar->addActions(grp->actions());
     m_formatMenu->addActions(grp->actions());
 
     m_formatMenu->addSeparator();
@@ -428,16 +434,16 @@ void TextEdit::setupTextActions()
 
 void TextEdit::setupInsertActions()
 {
-    QToolBar *tb = new QToolBar(this);
-    tb->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
+    m_insertToolBar = new QToolBar(this);
+    m_insertToolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
     addToolBarBreak(Qt::TopToolBarArea);
-    tb->setWindowTitle(QStringLiteral("插入"));
-    addToolBar(tb);
+    m_insertToolBar->setWindowTitle(QStringLiteral("插入"));
+    addToolBar(m_insertToolBar);
 
     m_insertMenu = new QMenu(QStringLiteral("插入"), this);
 
-    m_comboStyle = new QComboBox(tb);
-    tb->addWidget(m_comboStyle);
+    m_comboStyle = new QComboBox(m_insertToolBar);
+    m_insertToolBar->addWidget(m_comboStyle);
 
     QStringList styleList;
 
@@ -457,12 +463,12 @@ void TextEdit::setupInsertActions()
                                                      QIcon(rsrcPath + "/image.png")),
                                     QStringLiteral("图片"),
                                     this);
-    m_actionInsertImg->setShortcut(Qt::CTRL + Qt::Key_I);
+    m_actionInsertImg->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_P);
     m_actionInsertImg->setPriority(QAction::NormalPriority);
     m_actionInsertImg->setToolTip(QStringLiteral("插入图片"));
 
     connect(m_actionInsertImg, SIGNAL(triggered()), this, SLOT(insertImageDlg()));
-    tb->addAction(m_actionInsertImg);
+    m_insertToolBar->addAction(m_actionInsertImg);
 
     m_insertMenu->addAction(m_actionInsertImg);
     m_actionTextBold->setCheckable(false);
@@ -473,12 +479,12 @@ void TextEdit::setupInsertActions()
                                                      QIcon(rsrcPath + "/link.png")),
                                     QStringLiteral("链接"),
                                     this);
-    m_actionInsertLink->setShortcut(Qt::CTRL + Qt::Key_L);
+    m_actionInsertLink->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_L);
     m_actionInsertLink->setPriority(QAction::NormalPriority);
     m_actionInsertLink->setToolTip(QStringLiteral("插入超链接"));
 
     connect(m_actionInsertLink, SIGNAL(triggered()), this, SLOT(insertHyperLinkDlg()));
-    tb->addAction(m_actionInsertLink);
+    m_insertToolBar->addAction(m_actionInsertLink);
 
     m_insertMenu->addAction(m_actionInsertLink);
 

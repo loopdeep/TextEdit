@@ -46,5 +46,6 @@
         <file>images/mac/link.png</file>
         <file>images/mac/web.png</file>
         <file>images/mac/openfile.png</file>
+        <file>images/edit.ico</file>
     </qresource>
 </RCC>
